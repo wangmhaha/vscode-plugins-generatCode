@@ -1,0 +1,41 @@
+
+# This file contains all the files/directories that should
+# be ignored (i.e. not included) in the final packaged extension.
+
+# Ignore extension configs
+.vscode/**
+
+# Ignore test files
+.vscode-test/**
+out/test/**
+
+# Ignore source code
+src/**
+
+# Ignore all webview-ui files except the build directory
+webview-ui/node_modules/**
+webview-ui/public/**
+webview-ui/src/**
+webview-ui/.gitignore
+webview-ui/.eslintrc.cjs
+webview-ui/index.html
+webview-ui/package.json
+webview-ui/package-lock.json
+webview-ui/pnpm-lock.yaml
+webview-ui/postcss.config.js
+webview-ui/README.md
+webview-ui/tailwind.config.js
+webview-ui/tsconfig.app.json
+webview-ui/tsconfig.json
+webview-ui/tsconfig.node.json
+webview-ui/vite.config.ts
+
+# Ignore Misc
+.yarnrc
+vsc-extension-quickstart.md
+**/.gitignore
+**/tsconfig.json
+**/vite.config.ts
+**/.eslintrc.json
+**/*.map
+**/*.ts

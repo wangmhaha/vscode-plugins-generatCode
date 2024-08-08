@@ -1,0 +1,43 @@
+import type { IResData, IResListData } from '@/services/service';
+import { ParamsType } from '@ant-design/pro-components';
+import { request } from '@umijs/max';
+import type { DataTableListType } from './data.d';
+
+/**
+  * 获取列表
+  * @param params
+  * @param options
+*/
+export async function getTableList(params: ParamsType, options?: Record<string, any>) {
+  return request<IResData<IResListData<DataTableListType[]>>>('/api{{apiList.interfaceUrl}}', {
+    method: 'GET',
+    params,
+    ...(options || {}),
+  });
+}
+
+/**
+  * 新增修改
+  * @param params
+  * @param options
+*/
+export async function submitEditOrAdd(params: ParamsType, options?: Record<string, any>) {
+  return request<IResData<any>>('/api{{apiEdit.interfaceUrl}}', {
+    method: 'POST',
+    data: params,
+    ...(options || {}),
+  });
+}
+
+/**
+  * 获取详情
+  * @param params
+  * @param options
+*/
+export async function getDetail(params: { id: string }, options?: Record<string, any>) {
+  return request<IResData<DataTableListType>>('/api{{apiDetail.interfaceUrl}}', {
+    method: 'GET',
+    params,
+    ...(options || {}),
+  });
+}

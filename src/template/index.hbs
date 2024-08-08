@@ -1,0 +1,158 @@
+  import ToolBar from '@/components/Sword/toolBar';
+  import { getButton } from '@/utils/authority';
+  import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
+  import { history, request } from '@umijs/max';
+  import { Divider, message, Modal, Tag } from 'antd';
+  import React, { useRef, useState } from 'react';
+  import type { DataTableListType, BtnTypeProprs } from './data.d';
+  import { getTableList } from './service';
+
+
+  const {{capitalize name}}: React.FC = () => {
+    const [selectedRowkeys, setSelectedRowkeys] = useState<React.Key[]>([]);
+
+    const actionRef = useRef<ActionType>();
+
+    const actionbtns = getButton('{{ name }}').filter(
+      (button: { action: number }) => button.action === 2 || button.action === 3,
+    );
+
+    const columns: ProColumns<DataTableListType>[] = [
+      {{#each fieldsList}}
+      {
+        title: '{{name}}',
+        dataIndex: '{{name}}',
+        key: '{{name}}',
+        valueType: '{{fieldSearchType}}',
+        hideInSearch: {{#if fieldSearch}} false {{else}} true {{/if}},
+        {{#if (eq fieldSearchType 'select')}}
+        request: async() => {
+          const res = await request('{{fieldRemoteSource}}');
+          return res.data.map((item: { {{filedRemoteValue}}: string, {{filedRemoteKey}}: string }) => ({
+            label: item.{{filedRemoteValue}},
+            value: item.{{filedRemoteKey}},
+          }));
+        }
+        {{/if}}
+        {{#if (eq fieldSearchType 'treeSelect')}}
+          request: async() => {
+          const res = await request('{{fieldRemoteSource}}');
+            return res.data;
+          },
+          fieldProps: {
+            fieldNames: {
+              label: '{{filedRemoteValue}}',
+              value: '{{filedRemoteKey}}',
+              children: 'children',
+            }
+          }
+        {{/if}}
+      },
+      {{/each}}
+      {
+        title: '操作',
+        valueType: 'option',
+        width: 150,
+        render: (text, record) => {
+          return actionbtns.map(
+            (button: BtnTypeProprs, index: number) => (
+              <div key={button.code}>
+                {index > 0 ? <Divider type="vertical" /> : null}
+                <a title={button.name} onClick={() => handleClick(button, [record.id])}>
+                  {button.name}
+                </a>
+              </div>
+            ),
+          );
+        },
+      }  
+    ];
+
+    const handleClick = (btn: BtnTypeProprs, keys: React.Key[]) => {
+      const { path, alias } = btn;
+      if (alias === 'add') {
+        history.push(`${path}`);
+      }
+      if (alias === 'edit' || alias === 'videw') {
+         history.push(`${path}/${keys[0]}`);
+      }
+      if (alias === 'delete') {
+        if (keys.length <= 0) {
+          message.warning('请先选择要删除的记录!');
+          return;
+        }
+        Modal.confirm({
+          title: '删除确认',
+          content: '确定删除选中记录?',
+          okText: '确定',
+          okType: 'danger',
+          cancelText: '取消',
+          async onOk() {
+            request(`${path}`, {
+              method: 'POST',
+              params: {
+                ids: keys.join(','),
+              },
+            })
+              .then((res) => {
+                if (res && res.success) {
+                  message.success(res.msg);
+                  actionRef.current?.reload();
+                  if (actionRef.current?.clearSelected) {
+                    actionRef.current.clearSelected();
+                  }
+                } else {
+                  message.error(res.msg || '删除失败');
+                }
+              })
+              .catch((e) => {
+                console.info(e);
+              });
+          },
+          onCancel() {},
+        });
+      }
+    };
+
+    const handleToolBarClick = (btn: any) => {
+      const keys = selectedRowkeys;
+      handleClick(btn, keys);
+    };
+
+    const onSelectChange = (keys: React.Key[]) => {
+      setSelectedRowkeys(keys);
+    };
+
+    return (
+      <ProTable<DataTableListType>
+        columns={columns}
+        rowSelection={{#reactExpr}}
+          selectedRowKeys: selectedRowkeys,
+          onChange: onSelectChange,
+        {{/reactExpr}}
+        actionRef={actionRef}
+        request={async (params) => {
+          const { current, pageSize, ...others } = params;
+          const res = await getTableList({
+            ...others,
+            current: current,
+            size: pageSize,
+          });
+          return {
+            data: res.data.records,
+            success: res.success,
+            total: res.data && res.data.total,
+          };
+        }}
+        rowKey="id"
+        search={{#reactExpr}}labelWidth: 'auto'{{/reactExpr}}
+        pagination={{#reactExpr}}pageSize: 10{{/reactExpr}}
+        toolbar={{#reactExpr}}
+          title: '列表',
+          actions: [<ToolBar key="dept-toolbar" code={'{{name}}'} onClick={handleToolBarClick} />],
+        {{/reactExpr}}
+      />
+    )
+  }
+
+export default {{capitalize name}};

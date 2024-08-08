@@ -1,0 +1,15 @@
+export interface DataTableListType {
+{{#each fieldsList}}
+  {{name}}: {{integerToNumber fieldType }};
+{{/each}}
+  id: string;
+  [key: string]: string
+}
+
+export type BtnTypeProprs = {
+  alias: string;
+  code: string;
+  name: string;
+  path: string;
+  [key: string]: any
+}

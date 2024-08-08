@@ -1,0 +1,10 @@
+import { useParams } from '@umijs/max'; 
+import React from 'react'; 
+import BasicForm from './basicForm';
+
+const View: React.FC = () => { 
+  const { id } = useParams(); 
+  return <BasicForm title="查看" id={id} disabled />
+};
+
+export default View;

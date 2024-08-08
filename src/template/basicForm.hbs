@@ -1,0 +1,242 @@
+import { history, request } from '@umijs/max';
+import { Button, Card, message, Space } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
+import { submitEditOrAdd, getDetail } from './service';
+import {
+  ProForm,
+  ProFormInstance,
+  {{#each uniqueFieldTypes}}
+  {{#if (eq this 'text')}}
+  ProFormText,
+  {{else if (eq this 'select')}}
+  ProFormSelect,
+  {{else if (eq this 'radio')}}
+  ProFormRadio,
+  {{else if (eq this 'treeSelect')}}
+  ProFormTreeSelect,
+  {{else if (eq this 'date')}}
+  ProFormDatePicker,
+  {{else if (eq this 'dateTime')}}
+  ProFormDateTimePicker,
+  {{else if (eq this 'time')}}
+  ProFormTimePicker,
+  {{/if}}
+  {{/each}}
+} from '@ant-design/pro-components';
+
+type BasicFormProps = {
+  title: string;
+  id?: string;
+  disabled?: boolean;
+};
+
+type SubmitDataType = {
+{{#each fieldsList}}
+  {{name}}:{{integerToNumber fieldType }};
+{{/each}}
+  id?: string;
+};
+
+const formItemLayout = {
+  labelCol: {
+    xs: { span: 24 },
+    sm: { span: 7 },
+  },
+  wrapperCol: {
+    xs: { span: 24 },
+    sm: { span: 12 },
+    md: { span: 10 },
+  },
+};
+
+const BasicForm: React.FC<BasicFormProps> = ({ title, id, disabled }) => {
+  const formRef = useRef<ProFormInstance>();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (id) {
+      getDetail({ id }).then((res) => {
+        const resData = res.data || {};
+        formRef.current?.setFieldsValue({
+          ...resData,
+        });
+      });
+    }
+  }, [id]);
+
+
+  const action = (
+    <Space>
+      {!disabled ? (
+        <>
+          <Button type="primary" loading={loading} onClick={() => formRef.current?.submit()}>
+            提交
+          </Button>
+          <Button type="default" onClick={() => formRef.current?.resetFields()}>
+            重置
+          </Button>
+        </>
+      ) : null}
+      <Button type="default" onClick={() => history.push('/resource/sms/list')}>
+        返回
+      </Button>
+    </Space>
+  );
+
+  const handleSubmit = async (values: SubmitDataType) => {
+    setLoading(true);
+    if (id) {
+      values.id = id;
+    }
+    const response = await submitEditOrAdd({ ...values });
+    setLoading(false);
+    if (response.success) {
+      message.success(response.msg || '提交成功');
+      history.push('/resource/sms/list');
+    }
+  };
+
+
+  return (
+    <React.Fragment>
+      <Card title={title} extra={action}>
+        <ProForm
+          name="basic"
+          formRef={formRef}
+          layout="horizontal"
+          onFinish={handleSubmit}
+        >
+          {{#each fieldsList}}
+            {{#if (eq fieldSearchType 'text')}}
+              <ProFormText
+                label="{{note}}"
+                name="{{name}}"
+                {...formItemLayout}
+                rules={[
+                  {
+                    message: '最多输入50字符！',
+                    max: 100,
+                  },
+                  {
+                    required: {{#if (eq fieldRequired 0)}} false {{else}} true {{/if}},
+                    message: '请输入{{note}}',
+                  },
+                ]}
+                placeholder="请输入{{note}}"
+                fieldProps={{#reactExpr}}disabled: disabled{{/reactExpr}}
+              />
+            {{else if (eq fieldSearchType 'select')}}
+              <ProFormSelect
+                label="{{note}}"
+                name="{{name}}"
+                {...formItemLayout}
+                rules={[
+                  {
+                   required: {{#if (eq fieldRequired 0)}} false {{else}} true {{/if}},
+                    message: '请选择{{note}}',
+                  },
+                ]}
+                request={async () => {
+                  const res = await request('{{fieldRemoteSource}}');
+                  return res.data.map((item: { {{filedRemoteValue}}: string, {{filedRemoteKey}}: string }) => ({
+                    label: item.{{filedRemoteValue}},
+                    value: item.{{filedRemoteKey}},
+                  }));
+                }}
+                placeholder="请选择{{note}}"
+                fieldProps={{#reactExpr}}disabled: disabled{{/reactExpr}}
+              />
+            {{else if (eq fieldSearchType 'radio')}}
+              <ProFormRadio.Group
+                label="{{note}}"
+                name="{{name}}"
+                {...formItemLayout}
+                rules={[
+                  {
+                    required: {{#if (eq fieldRequired 0)}} false {{else}} true {{/if}},
+                    message: '请选择{{note}}',
+                  },
+                ]}
+                request={async () => {
+                  const res = await request('{{fieldRemoteSource}}');
+                  return res.data.map((item: { {{filedRemoteValue}}: string, {{filedRemoteKey}}: string }) => ({
+                    label: item.{{filedRemoteValue}},
+                    value: item.{{filedRemoteKey}},
+                  }));
+                }}
+                placeholder="请选择{{note}}"
+                fieldProps={{#reactExpr}}disabled: disabled{{/reactExpr}}
+              />
+            {{else if (eq fieldSearchType 'treeSelect')}}
+              <ProFormTreeSelect
+                label="{{note}}"
+                name="{{name}}"
+                {...formItemLayout}
+                rules={[
+                  {
+                    required: {{#if (eq fieldRequired 0)}} false {{else}} true {{/if}},
+                    message: '请选择{{note}}',
+                  },
+                ]}
+                request={async () => {
+                  const res = await request('{{fieldRemoteSource}}');
+                  return res.data;
+                }}
+                fieldProps={{#reactExpr}}
+                  fieldNames: {
+                    label: '{{filedRemoteValue}}',
+                    value: '{{filedRemoteKey}}',
+                    children: 'children',
+                  },
+                  disabled: disabled,
+                {{/reactExpr}}
+                placeholder="请选择{{note}}"
+              />
+            {{else if (eq fieldSearchType 'date')}}
+              <ProFormDatePicker
+                label="{{note}}"
+                name="{{name}}"
+                {...formItemLayout}
+                rules={[
+                  {
+                    required: required: {{#if (eq fieldRequired 0)}} false {{else}} true {{/if}},
+                    message: '请选择{{note}}',
+                  },
+                ]}
+                fieldProps={{#reactExpr}}disabled: disabled{{/reactExpr}}
+              />
+            {{else if (eq fieldSearchType 'dateTime')}}
+              <ProFormDateTimePicker
+                label="{{note}}"
+                name="{{name}}"
+                {...formItemLayout}
+                rules={[
+                  {
+                    required: required: {{#if (eq fieldRequired 0)}} false {{else}} true {{/if}},
+                    message: '请选择{{note}}',
+                  },
+                ]}
+                fieldProps={{#reactExpr}}disabled: disabled{{/reactExpr}}
+              />
+            {{else if (eq fieldSearchType 'time')}}
+              <ProFormTimePicker
+                label="{{note}}"
+                name="{{name}}"
+                {...formItemLayout}
+                rules={[
+                  {
+                    required: required: {{#if (eq fieldRequired 0)}} false {{else}} true {{/if}},
+                    message: '请选择{{note}}',
+                  },
+                ]}
+                fieldProps={{#reactExpr}}disabled: disabled{{/reactExpr}}
+              />
+            {{/if}}
+          {{/each}}
+        </ProForm>
+      </Card>
+    </React.Fragment>
+  )
+}
+
+export default BasicForm;

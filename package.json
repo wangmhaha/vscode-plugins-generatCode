@@ -1,0 +1,53 @@
+{
+  "name": "troy-crud",
+  "displayName": "Troy-Crud",
+  "description": "生成代码的插件",
+  "version": "1.0.5",
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "publisher": "Troy-CRUD",
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand: troy"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "troy",
+        "title": "开始代码生成",
+        "category": "Troy"
+      }
+    ]
+  },
+  "scripts": {
+    "install:all": "pnpm install && cd webview-ui && pnpm install",
+    "dev:webview": "cd webview-ui && pnpm run dev",
+    "build:webview": "cd webview-ui && pnpm run build",
+    "vscode:prepublish": "pnpm run build:webview && pnpm run compile",
+    "compile": "tsc -p ./ && pnpm run copy-templates",
+    "copy-templates": "copyfiles -u 1 src/template/**/*.hbs out",
+    "watch": "tsc -watch -p ./",
+    "pretest": "pnpm run compile && pnpm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.7",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.91.0",
+    "@typescript-eslint/eslint-plugin": "^7.14.1",
+    "@typescript-eslint/parser": "^7.11.0",
+    "@vscode/test-cli": "^0.0.9",
+    "@vscode/test-electron": "^2.4.0",
+    "copyfiles": "^2.4.1",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.8"
+  }
+}
