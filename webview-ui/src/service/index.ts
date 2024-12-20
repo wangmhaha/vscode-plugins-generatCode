@@ -6,7 +6,7 @@ export async function getInterfacesTree(params: { projectId: string }) {
   return request<
     IResData<{
       tree: ApiListDataType[];
-      interface: any[];
+      interface: InterfaceDetailType[];
     }>
   >("/api/dmp-test/tatInterfaceItem/tree", {
     method: "GET",
